@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'styles/dashboard.css' %}">
+    <link rel="stylesheet" href="{% static 'styles/bootstrap/css/bootstrap.min.css' %}">
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <h3 class="text-center">Finance Tracker</h3>
+        <a onClick="showSection('dashboard')">Dashboard</a>
+        <a  onClick="showSection('add-income-section')">Add Income</a>
+        <a onClick="showSection('add-expense-section')">Add Expense</a>
+        <a  onClick="showSection('budget-section')">Budget</a>
+        <a onClick="showSection('reports-section')">Reports</a>
+        <a href="{% url 'logout'%}">Logout</a>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+            <div class="container-fluid">
+                <span class="navbar-brand">Welcome, {{ user.username }}</span>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav ms-auto">
+                        <li class="nav-item">
+                            <a class="nav-link" href="">Profile</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'logout'%}">Logout</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+        <div id="dashboard" class="container mt-4">
+            <h1 class="mb-4">Dashboard</h1>
+            <div class="row">
+                <!-- Card 1 -->
+                <div class="col-md-4">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h5 class="card-title">Total Income</h5>
+                            <p class="card-text">ksh {{ total_income }}</p>
+                        </div>
+                    </div>
+                </div>
+                <!-- Card 2 -->
+                <div class="col-md-4">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h5 class="card-title">Total Expense</h5>
+                            <p class="card-text">ksh {{ total_expense }}</p>
+                        </div>
+                    </div>
+                </div>
+                <!-- Card 3 -->
+                <div class="col-md-4">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h5 class="card-title">Balance</h5>
+                            <p class="card-text">ksh {{ balance }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-5">
+                <h2>Monthly Overview</h2>
+                <canvas id="chart"></canvas>
+               </div>
+            </div>
+        </div>
+
+        <div id="add-income-section" class="container mt-4">
+            <h1 class="mb-4">Add Income</h1>
+
+            <form action="{%url 'dashboard'%}" method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="add_income" value="true">
+                <div class="mb-3">
+                    <label for="amount" class="form-label">Amount</label>
+                    <input type="number" class="form-control" id="amount" name="amount" required>
+                </div>
+                <div class="mb-3">
+                    <label for="source" class="form-label">Source</label>
+                    <input type="text" class="form-control" id="source" name="source" required>
+                </div>
+                <div class="mb-3">
+                    <label for="date" class="form-label">Date</label>
+                    <input type="date" class="form-control" id="dates" name="date" >
+                </div>
+                <button type="submit" class="btn btn-primary w-100">Add Income</button>
+            </form>
+        </div>
+        <div id="add-expense-section" class="container mt-4">
+        <h1 class="mb-4">Add Expense</h1>
+            <form action="{% url 'dashboard'%}" method="POST">
+        {% csrf_token %}
+                <input type="hidden" name="add_expense" value="true">
+        <div class="mb-3">
+            <label for="amount" class="form-label">Amount</label>
+            <input type="number" class="form-control" id="amounts" name="amount" required>
+        </div>
+        <div class="mb-3">
+            <label for="category" class="form-label">Category</label>
+            <input type="text" class="form-control" id="category" name="category"  required>
+        </div>
+        <div class="mb-3">
+            <label for="date" class="form-label">Date</label>
+            <input type="date" class="form-control" id="date" name="date">
+        </div>
+        <button type="submit" class="btn btn-primary w-100">Add Expense</button>
+    </form>
+
+        </div>
+
+        <div id="budget-section" class="container mt-4">
+        <h1 class="mb-4">Budget</h1>
+             <form action="{% url 'dashboard' %}" method="POST">
+        {% csrf_token %}
+        <input type="hidden" name="budget" value="true">
+        <div class="mb-3">
+            <label for="monthly_limit" class="form-label">Set Monthly Limit</label>
+            <input type="number" class="form-control" id="monthly_limit" name="monthly_limit"
+                value="{{ budget.monthly_limit|default:0 }}" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Update Budget</button>
+    </form>
+    <hr>
+    <h3>Budget Details</h3>
+    <p><strong>Total Income:</strong> ksh {{ total_income }}</p>
+    <p><strong>Monthly Limit:</strong> ksh {{ budget.monthly_limit|default:0 }}</p>
+    <p><strong>Balance:</strong> ksh {{ budget.balance|default:0 }}</p>
+</div>
+         <div id="reports-section" class="container mt-4">
+        <h1 class="mb-4">Reports</h1>
+
+         <!-- Monthly Income and Expense Trend -->
+    <h3>Monthly Overview</h3>
+    <canvas id="income-expense-chart" class="mb-4"></canvas>
+
+    <!-- Expense Breakdown by Category -->
+    <h3 class="mb-4">Expense Breakdown by Category</h3>
+    <ul>
+        {% for expense in expenses_by_category %}
+        <li>{{ expense.category }}: ksh {{ expense.total }}</li>
+        {% endfor %}
+    </ul>
+
+    </div>
+
+
+        </div>
+
+
+
+
+
+
+
+
+    <!-- Include Bootstrap and Chart.js -->
+    <script src="{% static 'styles/bootstrap/js/bootstrap.min.js' %}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="{% static 'js/chart.js'%}"></script>
+    <script src="{% static 'js/dashboard.js'%}"></script>
+
+<script id="income-data" type="application/json">{{ monthly_income|safe }}</script>
+<script id="expense-data" type="application/json">{{ monthly_expense|safe }}</script>
+<canvas id="income-expense-chart" width="400" height="200"></canvas>
+
+
+
+</body>
+</html>

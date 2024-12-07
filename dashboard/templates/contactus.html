@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Contact Us</title>
+</head>
+{% load static%}
+<link rel="stylesheet" href="{% static 'styles/bootstrap/css/bootstrap.min.css'%}">
+<body>
+<div class="container mt-5">
+    <h1 class="text-center mb-4">Contact Us</h1>
+    {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-success">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+
+        <form method="POST" action="">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit" class="btn btn-primary w-100 mt-3">Send Message</button>
+        </form>
+    </div>
+
+
+
+</body>
+</html>
